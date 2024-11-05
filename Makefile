@@ -57,6 +57,7 @@ UYOU_BUNDLE = $(UYOU_PATH)/Library/Application\ Support/uYouBundle.bundle
 internal-clean::
 	@rm -rf $(UYOU_PATH)/*
 
+# Download and extract uYou
 ifneq ($(JAILBROKEN),1)
 before-all::
 	@mkdir -p "$(UYOU_PATH)"
@@ -88,6 +89,7 @@ before-all::
 	fi
 endif
 
+# Package preparation
 before-package::
 ifneq ($(JAILBROKEN),1)
 	@true
