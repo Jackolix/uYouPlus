@@ -1,5 +1,8 @@
 export TARGET = iphone:clang:16.5:14.0
+export SDK_PATH = $(THEOS)/sdks/iPhoneOS16.5.sdk/
+export SYSROOT = $(SDK_PATH)
 export ARCHS = arm64
+
 export libcolorpicker_ARCHS = arm64
 export libFLEX_ARCHS = arm64
 export Alderis_XCODEOPTS = LD_DYLIB_INSTALL_NAME=@rpath/Alderis.framework/Alderis
@@ -13,14 +16,14 @@ MODULES = jailed
 endif
 
 ifndef YOUTUBE_VERSION
-YOUTUBE_VERSION = 19.25.4
+YOUTUBE_VERSION = 19.40.4
 endif
-
 ifndef UYOU_VERSION
 UYOU_VERSION = 3.0.4
 endif
-
+PACKAGE_NAME = $(TWEAK_NAME)
 PACKAGE_VERSION = $(YOUTUBE_VERSION)-$(UYOU_VERSION)
+
 INSTALL_TARGET_PROCESSES = YouTube
 TWEAK_NAME = uYouPlus
 DISPLAY_NAME = YouTube
@@ -36,64 +39,40 @@ $(TWEAK_NAME)_EMBED_BUNDLES = $(wildcard Bundles/*.bundle)
 $(TWEAK_NAME)_EMBED_EXTENSIONS = $(wildcard Extensions/*.appex)
 
 include $(THEOS)/makefiles/common.mk
-
 ifneq ($(JAILBROKEN),1)
 SUBPROJECTS += Tweaks/Alderis Tweaks/FLEXing/libflex Tweaks/iSponsorBlock Tweaks/Return-YouTube-Dislikes Tweaks/YouPiP Tweaks/YTABConfig Tweaks/YTUHD Tweaks/DontEatMyContent Tweaks/YTVideoOverlay Tweaks/YouMute Tweaks/YouQuality Tweaks/YTClassicVideoQuality Tweaks/NoYTPremium Tweaks/YTSpeed Tweaks/YouTube-X
 include $(THEOS_MAKE_PATH)/aggregate.mk
 endif
-
 include $(THEOS_MAKE_PATH)/tweak.mk
 
 REMOVE_EXTENSIONS = 1
 CODESIGN_IPA = 0
 
-# uYou definitions
 UYOU_PATH = Tweaks/uYou
 UYOU_DEB = $(UYOU_PATH)/com.miro.uyou_$(UYOU_VERSION)_iphoneos-arm.deb
 UYOU_DYLIB = $(UYOU_PATH)/Library/MobileSubstrate/DynamicLibraries/uYou.dylib
 UYOU_BUNDLE = $(UYOU_PATH)/Library/Application\ Support/uYouBundle.bundle
 
-# Clean target
 internal-clean::
 	@rm -rf $(UYOU_PATH)/*
 
-# Download and extract uYou
 ifneq ($(JAILBROKEN),1)
 before-all::
-	@mkdir -p "$(UYOU_PATH)"
-	@mkdir -p theos/lib/iphone/rootless
-	@if [ ! -f "$(UYOU_DEB)" ]; then \
+	@if [[ ! -f $(UYOU_DEB) ]]; then \
+		rm -rf $(UYOU_PATH)/*; \
 		$(PRINT_FORMAT_BLUE) "Downloading uYou"; \
-		curl -L -s -o "$(UYOU_DEB)" "https://repo.miro92.com/debs/com.miro.uyou_$(UYOU_VERSION)_iphoneos-arm.deb" || exit 1; \
 	fi
-	@if [ ! -f "$(UYOU_DYLIB)" ] || [ ! -d "$(UYOU_BUNDLE)" ]; then \
-		cd "$(UYOU_PATH)" || exit 1; \
-		$(PRINT_FORMAT_BLUE) "Extracting uYou package..."; \
-		ar x "com.miro.uyou_$(UYOU_VERSION)_iphoneos-arm.deb" || exit 1; \
-		if [ -f "data.tar.gz" ]; then \
-			tar xzf data.tar.gz || exit 1; \
-		elif [ -f "data.tar.xz" ]; then \
-			tar xJf data.tar.xz || exit 1; \
-		elif [ -f "data.tar.zst" ]; then \
-			zstd -d data.tar.zst -o data.tar && tar xf data.tar || exit 1; \
-		else \
-			for f in data.tar.*; do \
-				tar xf "$$f" || exit 1; \
-			done; \
+before-all::
+	@if [[ ! -f $(UYOU_DEB) ]]; then \
+ 		curl -s https://repo.miro92.com/debs/com.miro.uyou_$(UYOU_VERSION)_iphoneos-arm.deb -o $(UYOU_DEB); \
+ 	fi; \
+	if [[ ! -f $(UYOU_DYLIB) || ! -d $(UYOU_BUNDLE) ]]; then \
+		tar -xf Tweaks/uYou/com.miro.uyou_$(UYOU_VERSION)_iphoneos-arm.deb -C Tweaks/uYou; tar -xf Tweaks/uYou/data.tar* -C Tweaks/uYou; \
+		if [[ ! -f $(UYOU_DYLIB) || ! -d $(UYOU_BUNDLE) ]]; then \
+			$(PRINT_FORMAT_ERROR) "Failed to extract uYou"; exit 1; \
 		fi; \
-		rm -f debian-binary control.tar.* data.tar*; \
-		if [ ! -f "$(UYOU_DYLIB)" ] || [ ! -d "$(UYOU_BUNDLE)" ]; then \
-			$(PRINT_FORMAT_ERROR) "Failed to extract uYou"; \
-			exit 1; \
-		fi; \
-	fi
-endif
-
-# Package preparation
-before-package::
-ifneq ($(JAILBROKEN),1)
-	@true
+	fi;
 else
-	@mkdir -p $(THEOS_STAGING_DIR)/Library/Application\ Support
-	@cp -r Localizations/uYouPlus.bundle $(THEOS_STAGING_DIR)/Library/Application\ Support/
+before-package::
+	@mkdir -p $(THEOS_STAGING_DIR)/Library/Application\ Support; cp -r Localizations/uYouPlus.bundle $(THEOS_STAGING_DIR)/Library/Application\ Support/
 endif
