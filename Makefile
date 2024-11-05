@@ -17,7 +17,7 @@ YOUTUBE_VERSION = 19.25.4
 endif
 
 ifndef UYOU_VERSION
-UYOU_VERSION = 3.0.3
+UYOU_VERSION = 3.0.4
 endif
 
 PACKAGE_VERSION = $(YOUTUBE_VERSION)-$(UYOU_VERSION)
@@ -60,6 +60,7 @@ internal-clean::
 ifneq ($(JAILBROKEN),1)
 before-all::
 	@mkdir -p "$(UYOU_PATH)"
+	@mkdir -p theos/lib/iphone/rootless
 	@if [ ! -f "$(UYOU_DEB)" ]; then \
 		$(PRINT_FORMAT_BLUE) "Downloading uYou"; \
 		curl -L -s -o "$(UYOU_DEB)" "https://repo.miro92.com/debs/com.miro.uyou_$(UYOU_VERSION)_iphoneos-arm.deb" || exit 1; \
@@ -85,9 +86,12 @@ before-all::
 			exit 1; \
 		fi; \
 	fi
-	@mkdir -p theos/lib/iphone/rootless
-else
+endif
+
 before-package::
+ifneq ($(JAILBROKEN),1)
+	@true
+else
 	@mkdir -p $(THEOS_STAGING_DIR)/Library/Application\ Support
 	@cp -r Localizations/uYouPlus.bundle $(THEOS_STAGING_DIR)/Library/Application\ Support/
 endif
