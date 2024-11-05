@@ -85,6 +85,7 @@ before-all::
 			exit 1; \
 		fi; \
 	fi
+	@mkdir -p theos/lib/iphone/rootless
 else
 before-package::
 	@mkdir -p $(THEOS_STAGING_DIR)/Library/Application\ Support
