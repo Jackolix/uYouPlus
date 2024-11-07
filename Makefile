@@ -1,6 +1,4 @@
 export TARGET = iphone:clang:16.5:14.0
-export SDK_PATH = $(THEOS)/sdks/iPhoneOS16.5.sdk/
-export SYSROOT = $(SDK_PATH)
 export ARCHS = arm64
 
 export libcolorpicker_ARCHS = arm64
@@ -16,12 +14,11 @@ MODULES = jailed
 endif
 
 ifndef YOUTUBE_VERSION
-YOUTUBE_VERSION = 19.40.4
+YOUTUBE_VERSION = 19.25.4
 endif
 ifndef UYOU_VERSION
-UYOU_VERSION = 3.0.4
+UYOU_VERSION = 3.0.3
 endif
-PACKAGE_NAME = $(TWEAK_NAME)
 PACKAGE_VERSION = $(YOUTUBE_VERSION)-$(UYOU_VERSION)
 
 INSTALL_TARGET_PROCESSES = YouTube
